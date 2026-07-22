@@ -48,6 +48,20 @@ function Register() {
         className="flex flex-col gap-4 text-left"
       >
         <div className="flex flex-col gap-1.5">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            type="text"
+            autoComplete="name"
+            aria-invalid={!!errors.name}
+            {...register('name')}
+          />
+          {errors.name && (
+            <p className="text-sm text-destructive">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">E-Mail</Label>
           <Input
             id="email"
