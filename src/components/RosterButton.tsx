@@ -20,14 +20,17 @@ function RosterButton({ pokemon, className, onToggle }: RosterButtonProps) {
     event.preventDefault()
     event.stopPropagation()
 
-    const nextInRoster = !inRoster
-    if (nextInRoster) {
-      addToRoster(pokemon)
-    } else {
+    if (inRoster) {
       removeFromRoster(pokemon.id)
+      setInRoster(false)
+      onToggle?.(false)
+      return
     }
-    setInRoster(nextInRoster)
-    onToggle?.(nextInRoster)
+
+    const updated = addToRoster(pokemon)
+    const added = updated.some((p) => p.id === pokemon.id)
+    setInRoster(added)
+    onToggle?.(added)
   }
 
   return (

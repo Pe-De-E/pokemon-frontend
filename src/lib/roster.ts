@@ -5,6 +5,7 @@ export type RosterEntry = {
 }
 
 const ROSTER_KEY = 'roster'
+export const MAX_ROSTER_SIZE = 6
 
 export function getRoster(): RosterEntry[] {
   const raw = localStorage.getItem(ROSTER_KEY)
@@ -25,6 +26,7 @@ function saveRoster(roster: RosterEntry[]) {
 export function addToRoster(entry: RosterEntry) {
   const roster = getRoster()
   if (roster.some((p) => p.id === entry.id)) return roster
+  if (roster.length >= MAX_ROSTER_SIZE) return roster
   return saveRoster([...roster, entry])
 }
 
