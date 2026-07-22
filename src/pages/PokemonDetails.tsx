@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import RosterButton from '@/components/RosterButton'
 import { fetchPokemonDetail, type PokemonDetail } from '@/lib/pokeapi'
 
 function formatLabel(name: string) {
@@ -32,7 +33,7 @@ function PokemonDetails() {
       {error && <p className="text-destructive">{error}</p>}
 
       {pokemon && (
-        <Card className="w-full text-left">
+        <Card className="relative w-full text-left">
           <CardHeader className="items-center text-center">
             <div className="flex flex-col items-center gap-2">
               <img
@@ -91,6 +92,15 @@ function PokemonDetails() {
               </div>
             </div>
           </CardContent>
+
+          <RosterButton
+            pokemon={{
+              id: pokemon.id,
+              name: pokemon.name,
+              spriteUrl: pokemon.spriteUrl,
+            }}
+            className="mx-auto mt-2 md:absolute md:top-4 md:right-4 md:mx-0 md:mt-0"
+          />
         </Card>
       )}
     </section>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import RosterButton from '@/components/RosterButton'
 import { fetchPokemonList, type PokemonListItem } from '@/lib/pokeapi'
 
 const PAGE_SIZE = 20
@@ -49,7 +50,11 @@ function Home() {
           <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {pokemon.map((p) => (
               <Link key={p.id} to={`/pokemon/${p.id}`}>
-                <Card className="items-center text-center transition-shadow hover:shadow-md">
+                <Card className="relative items-center text-center transition-shadow hover:shadow-md">
+                  <RosterButton
+                    pokemon={p}
+                    className="absolute top-2 right-2 opacity-0 transition-opacity group-hover/card:opacity-100"
+                  />
                   <CardContent className="flex flex-col items-center gap-2">
                     <img
                       src={p.spriteUrl}
