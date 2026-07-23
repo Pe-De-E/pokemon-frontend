@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loginSchema, type LoginInput } from '@/schemas/auth'
 import { apiFetch, ApiError } from '@/lib/api'
-import { setToken } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 function Login() {
@@ -29,11 +28,12 @@ function Login() {
   const onSubmit = async (data: LoginInput) => {
     setServerError(null)
     try {
-      const { token } = await apiFetch<{ token: string }>('/auth/login', {
+      // The JWT comes back as an HttpOnly cookie, not in the body — the
+      // browser stores it automatically, nothing for us to persist here.
+      await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
       })
-      setToken(token)
       navigate('/')
     } catch (error) {
       setServerError(

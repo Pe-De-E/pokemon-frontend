@@ -1,8 +1,25 @@
+import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { isAuthenticated } from '@/lib/auth'
+import { checkSession } from '@/lib/auth'
 
 function ProtectedRoute() {
-  if (!isAuthenticated()) {
+  const [status, setStatus] = useState<
+    'checking' | 'authenticated' | 'unauthenticated'
+  >('checking')
+
+  useEffect(() => {
+    checkSession().then((ok) => setStatus(ok ? 'authenticated' : 'unauthenticated'))
+  }, [])
+
+  if (status === 'checking') {
+    return (
+      <section id="center">
+        <p>Lädt…</p>
+      </section>
+    )
+  }
+
+  if (status === 'unauthenticated') {
     return <Navigate to="/login" replace />
   }
 

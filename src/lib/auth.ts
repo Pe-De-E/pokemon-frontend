@@ -1,17 +1,19 @@
-const TOKEN_KEY = 'token'
+import { apiFetch } from '@/lib/api'
 
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY)
+export async function checkSession() {
+  try {
+    await apiFetch('/auth/me')
+    return true
+  } catch {
+    return false
+  }
 }
 
-export function setToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
-}
-
-export function isAuthenticated() {
-  return getToken() !== null
+export async function logout() {
+  try {
+    await apiFetch('/auth/logout', { method: 'POST' })
+  } catch {
+    // Cookie is HttpOnly and expires server-side either way; nothing more
+    // we can do client-side if this request fails.
+  }
 }
