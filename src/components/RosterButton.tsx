@@ -1,7 +1,14 @@
 import { useEffect, useState, type MouseEvent } from 'react'
 import { Swords } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { addToRoster, isInRoster, removeFromRoster, type RosterEntry } from '@/lib/roster'
+import {
+  addToRoster,
+  isInRoster,
+  MAX_ROSTER_SIZE,
+  removeFromRoster,
+  type RosterEntry,
+} from '@/lib/roster'
 
 type RosterButtonProps = {
   pokemon: RosterEntry
@@ -31,6 +38,10 @@ function RosterButton({ pokemon, className, onToggle }: RosterButtonProps) {
     const added = updated.some((p) => p.id === pokemon.id)
     setInRoster(added)
     onToggle?.(added)
+
+    if (!added) {
+      toast.warning(`Roster ist voll (max. ${MAX_ROSTER_SIZE} Pokémon).`)
+    }
   }
 
   return (
