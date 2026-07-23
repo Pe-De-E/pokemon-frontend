@@ -37,3 +37,7 @@ export function removeFromRoster(id: number) {
 export function isInRoster(id: number) {
   return getRoster().some((p) => p.id === id)
 }
+
+export function clearRoster() {
+  localStorage.removeItem(ROSTER_KEY)
+}

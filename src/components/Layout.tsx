@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { logout } from '@/lib/auth'
 import './Layout.css'
 
 const links = [
@@ -9,6 +11,13 @@ const links = [
 ]
 
 function Layout() {
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
+
   return (
     <>
       <header id="nav">
@@ -25,6 +34,9 @@ function Layout() {
             </NavLink>
           ))}
         </nav>
+        <Button type="button" variant="outline" size="sm" onClick={handleLogout}>
+          Logout
+        </Button>
       </header>
       <Outlet />
     </>

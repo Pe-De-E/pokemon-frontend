@@ -26,6 +26,14 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
 
   if (!res.ok) {
     const body = await res.json().catch(() => null)
+
+    // A 401 from an auth endpoint is a normal, inline-displayable error
+    // (e.g. wrong password) — only expired/missing sessions on actual data
+    // endpoints should force a trip back to the login page.
+    if (res.status === 401 && !path.startsWith('/auth/')) {
+      window.location.assign('/login')
+    }
+
     throw new ApiError(body?.message ?? 'Etwas ist schiefgelaufen.', res.status)
   }
 

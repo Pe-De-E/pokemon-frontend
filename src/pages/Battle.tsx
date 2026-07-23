@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
@@ -13,6 +14,14 @@ import {
   type Move,
   type PokemonDetail,
 } from '@/lib/pokeapi'
+import { postScore } from '@/lib/leaderboard'
+
+const POINTS_PER_KO = 100
+const WIN_BONUS = 200
+
+function calculateScore(defeatedCount: number, won: boolean) {
+  return defeatedCount * POINTS_PER_KO + (won ? WIN_BONUS : 0)
+}
 
 function formatLabel(name: string) {
   return name.replaceAll('-', ' ')
@@ -343,6 +352,26 @@ function Battle() {
   useEffect(() => {
     startNewBattle()
   }, [startNewBattle])
+
+  // Guards against posting the same result twice (e.g. React StrictMode's
+  // double effect invocation in dev).
+  const scorePostedRef = useRef(false)
+
+  useEffect(() => {
+    if (!winner) {
+      scorePostedRef.current = false
+      return
+    }
+    if (scorePostedRef.current) return
+    scorePostedRef.current = true
+
+    const defeatedCount = winner === 'player' ? opponentIds.length : opponentIndex
+    const score = calculateScore(defeatedCount, winner === 'player')
+
+    postScore(score)
+      .then(() => toast.success(`Score gespeichert: ${score} Punkte`))
+      .catch(() => toast.error('Score konnte nicht gespeichert werden.'))
+  }, [winner, opponentIds.length, opponentIndex])
 
   const handleAttack = async (move: Move) => {
     if (!fighter || !opponent || turn !== 'player' || isResolving || winner) return
