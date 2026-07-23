@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { getRoster, MAX_ROSTER_SIZE, type RosterEntry } from '@/lib/roster'
+import { useRoster } from '@/context/RosterContext'
+import { MAX_ROSTER_SIZE } from '@/lib/roster'
 import {
   fetchDamagingMoves,
   fetchPokemonDetail,
@@ -268,8 +269,11 @@ function randomTeamSize() {
 }
 
 function Battle() {
-  const [playerTeam] = useState<RosterEntry[]>(getRoster())
+  const { rosterIds: playerIds, isLoading: isRosterLoading } = useRoster()
   const [playerIndex, setPlayerIndex] = useState(0)
+  const [playerRevealed, setPlayerRevealed] = useState<
+    (PokemonDetail | null)[]
+  >([])
   const [opponentIds, setOpponentIds] = useState<number[]>([])
   const [opponentIndex, setOpponentIndex] = useState(0)
   const [opponentRevealed, setOpponentRevealed] = useState<
@@ -295,16 +299,17 @@ function Battle() {
   const playerHpRef = useRef<Record<number, number>>({})
 
   const loadFighter = (index: number) => {
-    const entry = playerTeam[index]
+    const id = playerIds[index]
     setFighter(null)
     setFighterMoves(null)
-    return fetchPokemonDetail(entry.id)
+    return fetchPokemonDetail(id)
       .then((detail) => {
         const maxHp = getStat(detail, 'hp')
         const hp = playerHpRef.current[index] ?? maxHp
         playerHpRef.current[index] = hp
         setFighter(detail)
         setFighterHp(hp)
+        setPlayerRevealed((prev) => prev.map((p, i) => (i === index ? detail : p)))
         fetchDamagingMoves(detail.moveRefs).then(setFighterMoves)
         return { detail, hp }
       })
@@ -334,9 +339,10 @@ function Battle() {
     setLog([])
     setLoadError(null)
     setFaintedIndices(new Set())
+    setPlayerRevealed(playerIds.map(() => null))
     playerHpRef.current = {}
 
-    if (playerTeam[0]) loadFighter(0)
+    if (playerIds[0]) loadFighter(0)
 
     const size = randomTeamSize()
     Promise.all(Array.from({ length: size }, () => fetchRandomPokemonId()))
@@ -347,7 +353,7 @@ function Battle() {
       })
       .catch(() => setLoadError('Der Gegner konnte nicht geladen werden.'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerTeam])
+  }, [playerIds])
 
   useEffect(() => {
     startNewBattle()
@@ -464,7 +470,7 @@ function Battle() {
       updatedFainted.add(activeIndex)
       setFaintedIndices(updatedFainted)
 
-      const nextIndex = playerTeam.findIndex((_, i) => !updatedFainted.has(i))
+      const nextIndex = playerIds.findIndex((_, i) => !updatedFainted.has(i))
       if (nextIndex !== -1) {
         setPlayerIndex(nextIndex)
         loadFighter(nextIndex)
@@ -503,7 +509,15 @@ function Battle() {
     setIsResolving(false)
   }
 
-  if (playerTeam.length === 0) {
+  if (isRosterLoading) {
+    return (
+      <section id="center">
+        <p>Lädt…</p>
+      </section>
+    )
+  }
+
+  if (playerIds.length === 0) {
     return (
       <section id="center" className="mx-auto w-full max-w-sm px-4 text-center">
         <h1>Battle</h1>
@@ -518,9 +532,9 @@ function Battle() {
     )
   }
 
-  const playerSlots: TeamSlot[] = playerTeam.map((p, i) => ({
-    id: p.id,
-    spriteUrl: p.spriteUrl,
+  const playerSlots: TeamSlot[] = playerIds.map((id, i) => ({
+    id,
+    spriteUrl: playerRevealed[i]?.spriteUrl ?? null,
     fainted: faintedIndices.has(i),
   }))
 
@@ -546,7 +560,7 @@ function Battle() {
       <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col items-center gap-1">
           <span className="text-xs text-muted-foreground">
-            Dein Team ({playerTeam.length})
+            Dein Team ({playerIds.length})
           </span>
           <TeamRow
             slots={playerSlots}

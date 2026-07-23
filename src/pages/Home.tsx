@@ -52,7 +52,7 @@ function Home() {
               <Link key={p.id} to={`/pokemon/${p.id}`}>
                 <Card className="relative items-center text-center transition-shadow hover:shadow-md">
                   <RosterButton
-                    pokemon={p}
+                    pokemonId={p.id}
                     className="absolute top-2 right-2 opacity-0 transition-opacity group-hover/card:opacity-100"
                   />
                   <CardContent className="flex flex-col items-center gap-2">

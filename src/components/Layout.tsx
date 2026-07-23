@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { RosterProvider } from '@/context/RosterContext'
 import { logout } from '@/lib/auth'
 import './Layout.css'
 
@@ -19,7 +20,7 @@ function Layout() {
   }
 
   return (
-    <>
+    <RosterProvider>
       <header id="nav">
         <span id="nav-brand">Pokémon</span>
         <nav>
@@ -39,7 +40,7 @@ function Layout() {
         </Button>
       </header>
       <Outlet />
-    </>
+    </RosterProvider>
   )
 }
 

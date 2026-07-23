@@ -2,39 +2,48 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import RosterButton from '@/components/RosterButton'
-import { getRoster, type RosterEntry } from '@/lib/roster'
+import { useRoster } from '@/context/RosterContext'
+import { fetchPokemonDetail, type PokemonDetail } from '@/lib/pokeapi'
 
 function formatName(name: string) {
   return name.replaceAll('-', ' ')
 }
 
 function MyRoster() {
-  const [roster, setRoster] = useState<RosterEntry[]>([])
+  const { rosterIds, isLoading } = useRoster()
+  const [pokemon, setPokemon] = useState<PokemonDetail[]>([])
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true)
 
   useEffect(() => {
-    setRoster(getRoster())
-  }, [])
+    if (isLoading) return
+
+    if (rosterIds.length === 0) {
+      setPokemon([])
+      setIsLoadingDetails(false)
+      return
+    }
+
+    setIsLoadingDetails(true)
+    Promise.all(rosterIds.map((id) => fetchPokemonDetail(id)))
+      .then(setPokemon)
+      .finally(() => setIsLoadingDetails(false))
+  }, [rosterIds, isLoading])
+
+  const showEmpty = !isLoading && !isLoadingDetails && pokemon.length === 0
 
   return (
     <section id="center" className="mx-auto w-full px-4 py-8">
       <h1>My Roster</h1>
 
-      {roster.length === 0 && <p>Noch keine Pokémon im Roster.</p>}
+      {(isLoading || isLoadingDetails) && <p>Lädt…</p>}
+      {showEmpty && <p>Noch keine Pokémon im Roster.</p>}
 
-      {roster.length > 0 && (
+      {!isLoadingDetails && pokemon.length > 0 && (
         <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {roster.map((p) => (
+          {pokemon.map((p) => (
             <Link key={p.id} to={`/pokemon/${p.id}`}>
               <Card className="relative items-center text-center transition-shadow hover:shadow-md">
-                <RosterButton
-                  pokemon={p}
-                  className="absolute top-2 right-2"
-                  onToggle={(inRoster) => {
-                    if (!inRoster) {
-                      setRoster((prev) => prev.filter((entry) => entry.id !== p.id))
-                    }
-                  }}
-                />
+                <RosterButton pokemonId={p.id} className="absolute top-2 right-2" />
                 <CardContent className="flex flex-col items-center gap-2">
                   <img
                     src={p.spriteUrl}

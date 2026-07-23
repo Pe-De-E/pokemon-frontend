@@ -94,11 +94,7 @@ function PokemonDetails() {
           </CardContent>
 
           <RosterButton
-            pokemon={{
-              id: pokemon.id,
-              name: pokemon.name,
-              spriteUrl: pokemon.spriteUrl,
-            }}
+            pokemonId={pokemon.id}
             className="mx-auto mt-2 md:absolute md:top-4 md:right-4 md:mx-0 md:mt-0"
           />
         </Card>

@@ -1,5 +1,4 @@
 import { apiFetch } from '@/lib/api'
-import { clearRoster } from '@/lib/roster'
 
 export async function checkSession() {
   try {
@@ -17,5 +16,4 @@ export async function logout() {
     // Cookie is HttpOnly and expires server-side either way; nothing more
     // we can do client-side if this request fails.
   }
-  clearRoster()
 }
