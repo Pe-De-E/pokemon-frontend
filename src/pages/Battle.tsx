@@ -299,17 +299,23 @@ function Battle() {
   const playerHpRef = useRef<Record<number, number>>({})
 
   const loadFighter = (index: number) => {
-    const id = playerIds[index]
+    const cached = playerRevealed[index]
     setFighter(null)
     setFighterMoves(null)
-    return fetchPokemonDetail(id)
+    const detailPromise = cached
+      ? Promise.resolve(cached)
+      : fetchPokemonDetail(playerIds[index])
+
+    return detailPromise
       .then((detail) => {
         const maxHp = getStat(detail, 'hp')
         const hp = playerHpRef.current[index] ?? maxHp
         playerHpRef.current[index] = hp
         setFighter(detail)
         setFighterHp(hp)
-        setPlayerRevealed((prev) => prev.map((p, i) => (i === index ? detail : p)))
+        if (!cached) {
+          setPlayerRevealed((prev) => prev.map((p, i) => (i === index ? detail : p)))
+        }
         fetchDamagingMoves(detail.moveRefs).then(setFighterMoves)
         return { detail, hp }
       })
@@ -342,7 +348,20 @@ function Battle() {
     setPlayerRevealed(playerIds.map(() => null))
     playerHpRef.current = {}
 
-    if (playerIds[0]) loadFighter(0)
+    if (playerIds.length > 0) {
+      Promise.all(playerIds.map((id) => fetchPokemonDetail(id)))
+        .then((details) => {
+          setPlayerRevealed(details)
+
+          const first = details[0]
+          const hp = getStat(first, 'hp')
+          playerHpRef.current[0] = hp
+          setFighter(first)
+          setFighterHp(hp)
+          fetchDamagingMoves(first.moveRefs).then(setFighterMoves)
+        })
+        .catch(() => setLoadError('Dein Pokémon konnte nicht geladen werden.'))
+    }
 
     const size = randomTeamSize()
     Promise.all(Array.from({ length: size }, () => fetchRandomPokemonId()))
@@ -356,8 +375,9 @@ function Battle() {
   }, [playerIds])
 
   useEffect(() => {
+    if (isRosterLoading) return
     startNewBattle()
-  }, [startNewBattle])
+  }, [isRosterLoading, startNewBattle])
 
   // Guards against posting the same result twice (e.g. React StrictMode's
   // double effect invocation in dev).
