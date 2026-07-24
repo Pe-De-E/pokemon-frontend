@@ -1,3 +1,4 @@
+import { LogOut } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { RosterProvider } from '@/context/RosterContext'
@@ -35,7 +36,14 @@ function Layout() {
             </NavLink>
           ))}
         </nav>
-        <Button type="button" variant="outline" size="sm" onClick={handleLogout}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleLogout}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <LogOut />
           Logout
         </Button>
       </header>
